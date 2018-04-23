@@ -28,15 +28,29 @@ vibData = sum(rs_1.*x_1,2);
 
 % Erzeugen der Frequenzmap: 3D-Map mit Frequenz über rpm (entlang
 % der order) mit Amplitude (rms)
+rpmfreqmap(vibData,fs,rpmVec,'OverlapPercent',0.1,'Window','hamming')
 
-% rpmfreqmap(vibData,fs,rpmVec,'OverlapPercent',0.1,'Window','hamming')
+% Verwendung der Vold-Kalman-Funktion, bereitgestellt von Scot McNeill.
+% Vereinfacht die Ordnung 1.2 direkt vorgegeben (bei Verwendung in
+% orderTracking-Funktion, wird automatische Ordnungssuche implementiert
+[x_vk2,bw,T,xr_vk2] = vk2(vibData,rpmVec/60*1.2,fs,1600,1);
 
-% Auswertung entlang der größten Ordnung
-[mag, freqLine, orderlist] = orderTracking(vibData,fs,rpmVec);
+    % Bestimmung von 3 Eigenfrequenzen, die synthetisch der Ordnung 1.2
+    % zugefügt wurden.
+    [~, omega_vk2] = findpeaks(abs(x_vk2), rpmVec/60*1.2,'SortStr','descend','Npeaks', 3);
+    findpeaks(abs(x_vk2), rpmVec/60*1.2,'SortStr','descend','Npeaks', 3);
+    display(omega_vk2);
+    
+% Verwendung der ordertrack-Funktion der Matlab-Toolbox und der von R.
+% Trumpp implementierten Funktion zur automatischen Ordnungsauswahl. Plot
+% wird über Funktion erzeugt.
+figure
+[x_oT, freqLine, orderlist] = orderTracking(vibData, fs, rpmVec, 2);
 
-[~, omega] = findpeaks(mag(:,2), freqLine(:,1),'SortStr','descend','Npeaks', 3);
-
-display(omega);
+    % Bestimmung von 3 Eigenfrequenzen, die synthetisch der Ordnung 1.2
+    % zugefügt wurden.
+    [~, omega_oT] = findpeaks(x_oT(:,1), freqLine(:,1),'SortStr','descend','Npeaks', 3);
+    display(omega_oT);
 
 
 
